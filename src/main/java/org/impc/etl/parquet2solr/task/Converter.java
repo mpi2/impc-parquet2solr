@@ -45,7 +45,6 @@ public class Converter implements Serializable {
         SparkSession sparkSession = SparkSession
                 .builder()
                 .appName(sparkAppName)
-                .master("local[*]")
                 .getOrCreate();
         Dataset<Row> impcDataSet = sparkSession.read().parquet(impcParquetPath);
         impcDataSet.printSchema();
