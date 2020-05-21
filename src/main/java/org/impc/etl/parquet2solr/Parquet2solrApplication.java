@@ -25,8 +25,9 @@ public class Parquet2solrApplication
         String impcParquetPath = args[1];
         String coreName = args[2];
         outputPath = args[3];
+        int limit = Integer.valueOf(args[4]);
 
         Converter converter = new Converter();
-        converter.convert(sparkAppName, impcParquetPath, coreName, outputPath);
+        converter.convert(sparkAppName, impcParquetPath, coreName, outputPath, limit);
     }
 }

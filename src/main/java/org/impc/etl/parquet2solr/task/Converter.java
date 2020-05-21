@@ -39,15 +39,17 @@ public class Converter implements Serializable {
     );
 
 
-    public void convert(String sparkAppName, String impcParquetPath, String coreName, String outputPath) {
+    public void convert(String sparkAppName, String impcParquetPath, String coreName, String outputPath, int limit) {
         this.outputPath = outputPath;
 
         SparkSession sparkSession = SparkSession
                 .builder()
-                .master("local[*]")
                 .appName(sparkAppName)
                 .getOrCreate();
         Dataset<Row> impcDataSet = sparkSession.read().parquet(impcParquetPath);
+        if(limit > 0) {
+            impcDataSet = impcDataSet.limit(limit);
+        }
         impcDataSet.printSchema();
         impcDataSet.foreachPartition((ForeachPartitionFunction<Row>) t -> {
             String instancePathStr = format("%s/%s_%d", Converter.outputPath, coreName, TaskContext.getPartitionId());
