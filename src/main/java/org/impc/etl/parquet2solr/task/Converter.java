@@ -113,7 +113,7 @@ public class Converter implements Serializable {
             solrClient.commit();
             solrClient.optimize();
             solrClient.close();
-            FileSystem fs = FileSystem.get(Converter.conf);
+            FileSystem fs = FileSystem.get(Converter.conf.get());
             if(!fs.exists(new org.apache.hadoop.fs.Path(instancePathStr))) {
                 fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(instancePathStr),
                         new org.apache.hadoop.fs.Path(instancePathStr));

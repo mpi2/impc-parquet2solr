@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 import org.apache.hadoop.conf.Configuration;
 
 
-public class SerializableHadoopConfiguration extends Configuration implements Serializable {
+public class SerializableHadoopConfiguration implements Serializable {
     Configuration conf;
 
     public SerializableHadoopConfiguration(Configuration hadoopConf) {
@@ -34,10 +34,5 @@ public class SerializableHadoopConfiguration extends Configuration implements Se
     private void readObject(java.io.ObjectInputStream in) throws IOException {
         this.conf = new Configuration();
         this.conf.readFields(in);
-    }
-
-    @Override
-    public void forEach(Consumer<? super Map.Entry<String, String>> action) {
-
     }
 }
