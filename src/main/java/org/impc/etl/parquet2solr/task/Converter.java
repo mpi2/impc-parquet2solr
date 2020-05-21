@@ -122,6 +122,8 @@ public class Converter implements Serializable {
             if(!fs.exists(new org.apache.hadoop.fs.Path(instancePathStr))) {
                 fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(instancePathStr),
                         new org.apache.hadoop.fs.Path(instancePathStr));
+            } else {
+                System.out.println(format("Path exists: %s, %s", instancePathStr, fs.getUri()));
             }
         });
     }
