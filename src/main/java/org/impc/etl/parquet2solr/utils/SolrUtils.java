@@ -23,8 +23,10 @@ public class SolrUtils {
     private SolrUtils(){}
 
     public static EmbeddedSolrServer createSolrClient(Path path, String coreName) {
-        path.toFile().mkdir();
-
+        if( path.toFile().exists()) {
+            path.toFile().delete();
+            path.toFile().mkdir();
+        }
         Path confPath = Paths.get(path.toString() + "/conf/");
         confPath.toFile().mkdir();
         File solrConfigFile = Paths.get(confPath.toString() + "/solrconfig.xml").toFile();
