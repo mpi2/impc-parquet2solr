@@ -23,7 +23,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
 
-@SpringBootApplication(exclude = {org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration.class})
+@SpringBootApplication(exclude = {org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration.class, org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration.class})
 @Log4j
 public class Parquet2solrApplication
         implements CommandLineRunner {
