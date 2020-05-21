@@ -34,7 +34,6 @@ import static java.lang.String.format;
 @Log4j
 public class Converter implements Serializable {
 
-    protected static String outputPath;
     private static List<String> NUMERIC_SOLR_TYPES = Arrays.asList(
             "solr.DoublePointField",
             "solr.FloatPointField",
@@ -47,7 +46,6 @@ public class Converter implements Serializable {
     }
 
     public void convert(String sparkAppName, String impcParquetPath, String coreName, String outputPath, int limit) {
-        this.outputPath = outputPath;
 
         SparkSession sparkSession = SparkSession
                 .builder()
@@ -59,8 +57,9 @@ public class Converter implements Serializable {
         }
         SerializableHadoopConfiguration conf = new SerializableHadoopConfiguration(sparkSession.sparkContext().hadoopConfiguration());
         Broadcast<SerializableHadoopConfiguration> broadcastConf = sparkSession.sparkContext().broadcast(conf, classTag(SerializableHadoopConfiguration.class));
+        Broadcast<String> broadcastOutputPath = sparkSession.sparkContext().broadcast(outputPath, classTag(String.class));
         impcDataSet.foreachPartition((ForeachPartitionFunction<Row>) t -> {
-            String instancePathStr = format("%s/%s_%d", Converter.outputPath, coreName, TaskContext.getPartitionId());
+            String instancePathStr = format("%s/%s_%d", broadcastOutputPath.getValue(), coreName, TaskContext.getPartitionId());
             Path instancePath = Paths.get(instancePathStr);
             log.info(format("Created core directory at %s", instancePathStr));
             EmbeddedSolrServer solrClient = SolrUtils.createSolrClient(instancePath, coreName);
@@ -123,7 +122,7 @@ public class Converter implements Serializable {
                 fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(instancePathStr),
                         new org.apache.hadoop.fs.Path(instancePathStr));
             } else {
-                System.out.println(format("Path exists: %s, %s", instancePathStr, fs.getUri()));
+                log.info(format("Path exists: %s, %s", instancePathStr, fs.getUri()));
             }
         });
     }
