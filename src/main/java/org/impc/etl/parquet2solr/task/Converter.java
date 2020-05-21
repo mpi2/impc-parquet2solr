@@ -11,6 +11,7 @@ import org.apache.solr.core.CoreContainer;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.spark.TaskContext;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
+import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -18,6 +19,7 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.impc.etl.parquet2solr.utils.SerializableHadoopConfiguration;
 import org.impc.etl.parquet2solr.utils.SolrUtils;
+import scala.reflect.ClassTag;
 
 import java.io.File;
 import java.io.Serializable;
@@ -39,21 +41,25 @@ public class Converter implements Serializable {
             "solr.IntPointField",
             "solr.LongPointField"
     );
-    protected static  SerializableHadoopConfiguration conf;
 
+    private static <T> ClassTag<T> classTag(Class<T> clazz) {
+        return scala.reflect.ClassManifestFactory.fromClass(clazz);
+    }
 
     public void convert(String sparkAppName, String impcParquetPath, String coreName, String outputPath, int limit) {
         this.outputPath = outputPath;
 
         SparkSession sparkSession = SparkSession
                 .builder()
+                .master("local[*]")
                 .appName(sparkAppName)
                 .getOrCreate();
         Dataset<Row> impcDataSet = sparkSession.read().parquet(impcParquetPath);
         if(limit > 0) {
             impcDataSet = impcDataSet.limit(limit);
         }
-        this.conf = new SerializableHadoopConfiguration(sparkSession.sparkContext().hadoopConfiguration());
+        SerializableHadoopConfiguration conf = new SerializableHadoopConfiguration(sparkSession.sparkContext().hadoopConfiguration());
+        Broadcast<SerializableHadoopConfiguration> broadcastConf = sparkSession.sparkContext().broadcast(conf, classTag(SerializableHadoopConfiguration.class));
         impcDataSet.foreachPartition((ForeachPartitionFunction<Row>) t -> {
             String instancePathStr = format("%s/%s_%d", Converter.outputPath, coreName, TaskContext.getPartitionId());
             Path instancePath = Paths.get(instancePathStr);
@@ -113,11 +119,13 @@ public class Converter implements Serializable {
             solrClient.commit();
             solrClient.optimize();
             solrClient.close();
-            FileSystem fs = FileSystem.get(Converter.conf.get());
+            FileSystem fs = FileSystem.get(broadcastConf.getValue().get());
             if(!fs.exists(new org.apache.hadoop.fs.Path(instancePathStr))) {
                 fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(instancePathStr),
                         new org.apache.hadoop.fs.Path(instancePathStr));
             }
         });
     }
+
 }
+
