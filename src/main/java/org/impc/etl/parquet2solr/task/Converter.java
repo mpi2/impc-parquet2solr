@@ -52,6 +52,7 @@ public class Converter implements Serializable {
             String instancePathStr = format("%s/%s_%d", Converter.outputPath, coreName, TaskContext.getPartitionId());
             Path instancePath = Paths.get(instancePathStr);
             instancePath.toFile().mkdir();
+            log.info(format("Created core directory at %s", instancePathStr));
             EmbeddedSolrServer solrClient = SolrUtils.createSolrClient(instancePath, coreName);
             while (t.hasNext()) {
                 Row row = t.next();
