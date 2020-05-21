@@ -23,7 +23,7 @@ public class SolrUtils {
     private SolrUtils(){}
 
     public static EmbeddedSolrServer createSolrClient(Path path, String coreName) {
-        if( path.toFile().exists()) {
+        if(path.toFile().exists()) {
             path.toFile().delete();
             path.toFile().mkdir();
         }
