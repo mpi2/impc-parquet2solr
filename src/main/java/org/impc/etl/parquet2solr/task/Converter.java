@@ -45,12 +45,21 @@ public class Converter implements Serializable {
         return scala.reflect.ClassManifestFactory.fromClass(clazz);
     }
 
-    public void convert(String sparkAppName, String impcParquetPath, String coreName, String outputPath, int limit, boolean inferSchema) {
+    public void convert(String sparkAppName, String impcParquetPath, String coreName, String outputPath, int limit, boolean inferSchema, boolean local) {
         // Initialize Spark session
-        SparkSession sparkSession = SparkSession
-                .builder()
-                .appName(sparkAppName)
-                .getOrCreate();
+        SparkSession sparkSession = null;
+        if(local) {
+            sparkSession = SparkSession
+                    .builder()
+                    .master("local[*]")
+                    .appName(sparkAppName)
+                    .getOrCreate();
+        } else {
+            sparkSession = SparkSession
+                    .builder()
+                    .appName(sparkAppName)
+                    .getOrCreate();
+        }
         // Read the parquet file to a Spark Dataset
         Dataset<Row> impcDataSet = sparkSession.read().parquet(impcParquetPath);
         if (limit > 0) {

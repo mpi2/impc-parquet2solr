@@ -24,14 +24,15 @@ public class Parquet2solrApplication
         String sparkAppName = args[0];
         String impcParquetPath = args[1];
         String coreName = args[2];
-        Boolean inferSchema = Boolean.parseBoolean(args[3]);
-        outputPath = args[4];
+        boolean inferSchema = Boolean.parseBoolean(args[3]);
+        boolean local = Boolean.parseBoolean(args[4]);
+        outputPath = args[5];
         int limit = -1;
-        if(args.length > 5) {
-           limit = Integer.valueOf(args[4]);
+        if(args.length > 6) {
+           limit = Integer.parseInt(args[6]);
         }
 
         Converter converter = new Converter();
-        converter.convert(sparkAppName, impcParquetPath, coreName, outputPath, limit, inferSchema);
+        converter.convert(sparkAppName, impcParquetPath, coreName, outputPath, limit, inferSchema, local);
     }
 }
