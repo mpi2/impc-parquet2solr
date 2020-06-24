@@ -45,80 +45,109 @@ public class Converter implements Serializable {
         return scala.reflect.ClassManifestFactory.fromClass(clazz);
     }
 
-    public void convert(String sparkAppName, String impcParquetPath, String coreName, String outputPath, int limit) {
-
+    public void convert(String sparkAppName, String impcParquetPath, String coreName, String outputPath, int limit, boolean inferSchema) {
+        // Initialize Spark session
         SparkSession sparkSession = SparkSession
                 .builder()
                 .appName(sparkAppName)
                 .getOrCreate();
+        // Read the parquet file to a Spark Dataset
         Dataset<Row> impcDataSet = sparkSession.read().parquet(impcParquetPath);
-        if(limit > 0) {
+        if (limit > 0) {
             impcDataSet = impcDataSet.limit(limit);
         }
+        // Setup the broadcast variables so they are available in each executor
+        // https://spark.apache.org/docs/2.2.0/rdd-programming-guide.html#broadcast-variables
         SerializableHadoopConfiguration conf = new SerializableHadoopConfiguration(sparkSession.sparkContext().hadoopConfiguration());
         Broadcast<SerializableHadoopConfiguration> broadcastConf = sparkSession.sparkContext().broadcast(conf, classTag(SerializableHadoopConfiguration.class));
         Broadcast<String> broadcastOutputPath = sparkSession.sparkContext().broadcast(outputPath, classTag(String.class));
+        Broadcast<Boolean> broadcastInferSchema = sparkSession.sparkContext().broadcast(inferSchema, classTag(Boolean.class));
+        Broadcast<StructType> broadcastSchema = sparkSession.sparkContext().broadcast(impcDataSet.schema(), classTag(StructType.class));
+        /*
+         * I would recommend not to change any of the code inside the ForeachPartitionFunction without keeping in mind SparkExecution model
+         * bear in mind that whatever is inside this block is not running as it would in a classic Java App
+         * It actually runs in independent JVM across the Spark cluster,
+         * so locally could look like you can access variables outside of this block but that's not the case in the cluster
+         * That's why I had to do this Broadcast wrapping before, the same could apply for methods
+         * */
         impcDataSet.foreachPartition((ForeachPartitionFunction<Row>) t -> {
+            Boolean inferSchemaValue = broadcastInferSchema.getValue();
             String instancePathStr = format("%s/%s_%d", broadcastOutputPath.getValue(), coreName, TaskContext.getPartitionId());
             Path instancePath = Paths.get(instancePathStr);
             log.info(format("Created core directory at %s", instancePathStr));
-            EmbeddedSolrServer solrClient = SolrUtils.createSolrClient(instancePath, coreName);
-            while (t.hasNext()) {
-                Row row = t.next();
-                try {
-                    StructType schema = row.schema();
+            EmbeddedSolrServer solrClient = null;
+            StructType schema = broadcastSchema.getValue();
+            if (!inferSchemaValue) {
+                solrClient = SolrUtils.createSolrClient(instancePath, coreName);
+                while (t.hasNext()) {
+                    Row row = t.next();
+                    try {
+                        SolrInputDocument document = new SolrInputDocument();
+                        for (StructField field : schema.fields()) {
+                            int index = schema.fieldIndex(field.name());
+                            String fieldName = field.name();
+                            String fieldType = field.dataType().typeName();
+                            IndexSchema indexSchema = solrClient.getCoreContainer().getCore(coreName).getLatestSchema();
+                            if (indexSchema.hasExplicitField(fieldName)) {
+                                String solrType = indexSchema.getField(fieldName).getType().getClassArg();
+                                if (!"array".equals(fieldType)) {
+                                    Object value = row.get(index);
+                                    if (NUMERIC_SOLR_TYPES.contains(solrType)) {
+                                        try {
+                                            Double.parseDouble((String) value);
+                                        } catch (Exception e) {
+                                            value = null;
+                                        }
+                                    }
+                                    document.addField(fieldName, value);
+                                } else {
+                                    if (!row.isNullAt(index)) {
+                                        List<Object> valueItems = row.getList(index);
+                                        if (valueItems != null) {
+                                            for (Object valueItem : valueItems) {
+                                                if (NUMERIC_SOLR_TYPES.contains(solrType)) {
+                                                    try {
+                                                        Double.parseDouble((String) valueItem);
+                                                    } catch (Exception e) {
+                                                        document.addField(fieldName, null);
+                                                    }
+                                                    document.addField(fieldName, valueItem);
+                                                } else {
+                                                    document.addField(fieldName, valueItem);
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        document.addField(fieldName, null);
+                                    }
+                                }
+                            }
+                        }
+                        solrClient.add(document);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        log.error("FAILED to index: " + row.mkString(" | "));
+                    }
+                }
+            } else {
+                solrClient = SolrUtils.createSolrClientInferSchema(instancePath, coreName, schema);
+                while (t.hasNext()) {
+                    Row row = t.next();
                     SolrInputDocument document = new SolrInputDocument();
                     for (StructField field : schema.fields()) {
                         int index = schema.fieldIndex(field.name());
                         String fieldName = field.name();
-                        String fieldType = field.dataType().typeName();
-                        IndexSchema indexSchema = solrClient.getCoreContainer().getCore(coreName).getLatestSchema();
-                        if (indexSchema.hasExplicitField(fieldName)) {
-                            String solrType = indexSchema.getField(fieldName).getType().getClassArg();
-                            if (!"array".equals(fieldType)) {
-                                Object value = row.get(index);
-                                if (NUMERIC_SOLR_TYPES.contains(solrType)) {
-                                    try {
-                                        Double.parseDouble((String) value);
-                                    } catch (Exception e) {
-                                        value = null;
-                                    }
-                                }
-                                document.addField(fieldName, value);
-                            } else {
-                                if (!row.isNullAt(index)) {
-                                    List<Object> valueItems = row.getList(index);
-                                    if (valueItems != null) {
-                                        for (Object valueItem : valueItems) {
-                                            if (NUMERIC_SOLR_TYPES.contains(solrType)) {
-                                                try {
-                                                    Double.parseDouble((String) valueItem);
-                                                } catch (Exception e) {
-                                                    document.addField(fieldName, null);
-                                                }
-                                                document.addField(fieldName, valueItem);
-                                            } else {
-                                                document.addField(fieldName, valueItem);
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    document.addField(fieldName, null);
-                                }
-                            }
-                        }
+                        Object value = row.get(index);
+                        document.addField(fieldName, value);
                     }
                     solrClient.add(document);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    log.error("FAILED to index: " + row.mkString(" | "));
                 }
             }
             solrClient.commit();
             solrClient.optimize();
             solrClient.close();
             FileSystem fs = FileSystem.get(broadcastConf.getValue().get());
-            if(!fs.exists(new org.apache.hadoop.fs.Path(instancePathStr))) {
+            if (!fs.exists(new org.apache.hadoop.fs.Path(instancePathStr))) {
                 fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(instancePathStr),
                         new org.apache.hadoop.fs.Path(instancePathStr));
             } else {
