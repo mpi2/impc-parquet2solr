@@ -124,7 +124,6 @@ public class SolrUtils {
             throw new RuntimeException(e);
         }
 
-        // This IndexSchema is based on the
         IndexSchema emptyIndexSchema = IndexSchemaFactory.buildIndexSchema(solrConfigFile.getPath(), solrConfig);
 
         List<SchemaField> targetFields = new ArrayList<>();
