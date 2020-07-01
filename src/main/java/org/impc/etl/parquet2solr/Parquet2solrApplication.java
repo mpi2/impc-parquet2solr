@@ -19,6 +19,17 @@ public class Parquet2solrApplication
         log.info("APPLICATION FINISHED");
     }
 
+    /**
+     *
+     * @param args
+     *   args[0] - Spark application name - used for xxx
+     *   args[1] - Path to parquet directory
+     *   args[2] - core name
+     *   args[3] - inferSchema (true or false) set to true to infer the schema; false to use the provided schema.xml
+     *   args[4] - local (true or false) - set to true if running local; false if running on the cluster
+     *   args[5] - Path to output directory
+     *   args[6] - limit
+     */
     @Override
     public void run(String... args) {
         String sparkAppName = args[0];
