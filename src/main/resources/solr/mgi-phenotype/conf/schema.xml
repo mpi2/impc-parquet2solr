@@ -1,64 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<schema name="pipeline core" version="1.6">
-    <uniqueKey>fully_qualified_name</uniqueKey>
+<schema name="mgi_phenotype_core" version="1.6">
+    <uniqueKey>doc_id</uniqueKey>
 
+    <!-- Added int fieldType to support the uniqueKey - should be a string -->
+    <!--
+    <fieldType name="int" class="solr.TrieIntField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
+    -->
 
     <!-- A general text field that has reasonable, generic
          cross-language defaults: it tokenizes with StandardTokenizer,
-     removes stop words from case-insensitive "stopwords.txt"
-     (empty by default), and down cases.  At query time only, it
-     also applies synonyms. -->
-
+	 removes stop words from case-insensitive "stopwords.txt"
+	 (empty by default), and down cases.  At query time only, it
+	 also applies synonyms. -->
     <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
         <analyzer type="index">
             <!--<tokenizer class="solr.StandardTokenizerFactory"/>-->
-            <!-- use KeywordTokenizerFactory so that no work splitting on punctuation, hyphen. Ie, does not split the input at all -->
 
+            <!-- use KeywordTokenizerFactory so that no work splitting on punctuation, hyphen. Ie, does not split the input at all -->
             <tokenizer class="solr.KeywordTokenizerFactory" />
             <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
             <!-- in this example, we will only use synonyms at query time
             <filter class="solr.SynonymFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
-            -->
 
+                    -->
             <filter class="solr.LowerCaseFilterFactory"/>
             <filter class="solr.RemoveDuplicatesTokenFilterFactory"/> <!-- added -->
         </analyzer>
-
         <analyzer type="query">
             <!--<tokenizer class="solr.StandardTokenizerFactory"/>-->
-            <!-- use KeywordTokenizerFactory so that no work splitting on punctuation, hyphen. Ie, does not split the input at all -->
 
+            <!-- use KeywordTokenizerFactory so that no work splitting on punctuation, hyphen. Ie, does not split the input at all -->
             <tokenizer class="solr.KeywordTokenizerFactory" />
             <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
             <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true" tokenizerFactory="solr.KeywordTokenizerFactory"/>
             <filter class="solr.LowerCaseFilterFactory"/>
             <filter class="solr.RemoveDuplicatesTokenFilterFactory"/> <!-- added -->
-
         </analyzer>
-
-    </fieldType>
-
-
-    <!-- to be used for autosuggest -->
-
-    <fieldType name="text_ngram" class="solr.TextField">
-        <analyzer type="index">
-            <tokenizer class="solr.WhitespaceTokenizerFactory"/>
-            <filter class="solr.LowerCaseFilterFactory"/>
-            <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
-            <filter class="solr.EdgeNGramFilterFactory" minGramSize="1" maxGramSize="100"/>
-            <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true" tokenizerFactory="solr.WhitespaceTokenizerFactory" />
-            <filter class="solr.FlattenGraphFilterFactory"/> <!-- required on index analyzers after graph filters -->
-        </analyzer>
-
-        <analyzer type="query">
-            <tokenizer class="solr.WhitespaceTokenizerFactory"/>
-            <filter class="solr.LowerCaseFilterFactory"/>
-            <!--<filter class="solr.KStemFilterFactory"/> -->
-            <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
-        </analyzer>
-
     </fieldType>
 
 
@@ -492,96 +470,77 @@
         </analyzer>
     </fieldType>
 
-    <field name="fully_qualified_name" type="string" indexed="true" stored="true"/>
-    <field name="data_type" type="string" indexed="true" stored="true"/>
     <field name="_version_" type="plong" indexed="true" stored="true"/>
 
-    <field name="parameter_id" type="plong" indexed="true" stored="true" required="true" multiValued="false"/>
-    <field name="parameter_stable_id" type="string" indexed="true" stored="true" required="true" multiValued="false"/>
-    <field name="parameter_name" type="string" indexed="true" stored="true" required="true" multiValued="false"/>
-    <field name="parameter_stable_key" type="plong" indexed="true" stored="true" required="true" multiValued="false"/>
+    <field name="doc_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
 
-    <field name="procedure_id" type="plong" indexed="true" stored="true" required="true" multiValued="false"/>
-    <field name="procedure_stable_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
-    <field name="procedure_name" type="string" indexed="true" stored="true" required="true" multiValued="false"/>
-    <field name="procedure_stable_key" type="plong" indexed="true" stored="true" required="true" multiValued="false"/>
+    <field name="assertion_type" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+    <field name="assertion_type_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
 
-    <field name="pipeline_id" type="plong" indexed="true" stored="true" required="true" multiValued="false"/>
-    <field name="pipeline_stable_id" type="string" indexed="true" stored="true" required="true" multiValued="false"/>
-    <field name="pipeline_name" type="string" indexed="true" stored="true" required="true" multiValued="false"/>
-    <field name="pipeline_stable_key" type="plong" indexed="true" stored="true" required="true" multiValued="false"/>
+    <!-- no top/intermediate for now for MPATH-->
+    <field name="mpath_term_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="mpath_term_name" type="string" indexed="true" stored="true" required="false" multiValued="false" />
 
-    <field name="required" type="boolean" indexed="true" stored="true" required="false" multiValued="false"/>
-    <field name="observation_type" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
-    <field name="mp_terms" type="string" indexed="true" stored="true" required="false" multiValued="true"/>
-    <field name="description" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
-    <field name="unit_x" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
-    <field name="unit_y" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
-    <field name="metadata" type="boolean" indexed="true" stored="true" required="false" multiValued="false"/>
-    <field name="increment" type="boolean" indexed="true" stored="true" required="false" multiValued="false"/>
-    <field name="categories" type="string" indexed="true" stored="true" required="false" multiValued="true"/>
-    <field name="has_options" type="boolean" indexed="true" stored="true" required="false" multiValued="false"/>
-    <field name="derived" type="boolean" indexed="true" stored="true" required="false" multiValued="false"/>
-    <field name="media" type="boolean" indexed="true" stored="true" required="false" multiValued="false"/>
-    <field name="annotate" type="boolean" indexed="true" stored="true" required="false" multiValued="false"/>
+    <!-- no top/intermediate for now for EMAP-->
+    <field name="emap_term_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="emap_term_name" type="string" indexed="true" stored="true" required="false" multiValued="false" />
 
-    <!-- Stage for procedure -->
-    <field name="experiment_level" type="string" indexed="true" stored="true" required="false" multiValued="false" />
-    <field name="stage" type="string" indexed="true" stored="true" required="false" multiValued="false" />
-    <field name="stage_label" type="string" indexed="true" stored="true" required="false" multiValued="false" />
-    <field name="schedule_key" type="plong" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="mp_term_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="mp_term_name" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="alt_mp_term_id" type="string" indexed="true" stored="true" required="false" multiValued="true" />
 
-
-    <!-- MP stuff -->
-
-    <field name="mp_id" type="string" indexed="true" stored="true" required="false" multiValued="true" />
-    <field name="mp_term" type="string" indexed="true" stored="true" required="false" multiValued="true" />
-    <field name="mp_term_synonym" type="string" indexed="true" stored="true" required="false" multiValued="true" />
-
-    <field name="top_level_mp_id" type="string" indexed="true" stored="true" required="false" multiValued="true" />
-    <field name="top_level_mp_term" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+    <field name="top_level_mp_term_id" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+    <field name="top_level_mp_term_name" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+    <field name="top_level_mp_term_definition" type="string" indexed="true" stored="true" required="false" multiValued="true" />
     <field name="top_level_mp_term_synonym" type="string" indexed="true" stored="true" required="false" multiValued="true" />
-
-    <field name="intermediate_mp_id" type="string" indexed="true" stored="true" required="false" multiValued="true" />
-    <field name="intermediate_mp_term" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+    <field name="intermediate_mp_term_id" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+    <field name="intermediate_mp_term_name" type="text_general" indexed="true" stored="true" required="false" multiValued="true" />
+    <field name="intermediate_mp_term_definition" type="string" indexed="true" stored="true" required="false" multiValued="true" />
     <field name="intermediate_mp_term_synonym" type="string" indexed="true" stored="true" required="false" multiValued="true" />
 
-    <field name="abnormal_mp_id" type="string" indexed="true" stored="true" required="false" multiValued="true" />
-    <field name="increased_mp_id" type="string" indexed="true" stored="true" required="false" multiValued="true" />
-    <field name="decreased_mp_id" type="string" indexed="true" stored="true" required="false" multiValued="true" />
-    <field name="abnormal_mp_term" type="string" indexed="true" stored="true" required="false" multiValued="true" />
-    <field name="increased_mp_term" type="string" indexed="true" stored="true" required="false" multiValued="true" />
-    <field name="decreased_mp_term" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+    <field name="marker_symbol" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="marker_accession_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
 
-    <!-- mp to hp mapping -->
-    <field name="hp_id" type="string" indexed="true" stored="true" required="false" multiValued="true" />
-    <field name="hp_term" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+    <field name="colony_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="allele_name" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="allele_symbol" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="allele_accession_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
 
-    <!--  MA/EMAP/EMAPA stuff -->
-    <field name="inferred_ma_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
-    <field name="inferred_selected_top_level_ma_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
-    <field name="inferred_selected_top_level_ma_term" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="strain_name" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="strain_accession_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
 
-    <field name="ma_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
-    <field name="ma_term" type="string" indexed="true" stored="true" required="false" multiValued="false" />
-    <field name="ma_term_synonym" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+    <field name="phenotyping_center" type="string" indexed="true" stored="true" required="false" multiValued="false" />
 
-    <field name="emap_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
-    <field name="emap_term" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="project_external_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="project_name" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="project_fullname" type="string" indexed="true" stored="true" required="false" multiValued="false" />
 
-    <field name="anatomy_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
-    <field name="anatomy_term" type="string" indexed="true" stored="true" required="false" multiValued="false" />
-    <field name="anatomy_term_synonym" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+    <field name="resource_name" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="resource_fullname" type="string" indexed="true" stored="true" required="false" multiValued="false" />
 
-    <!-- Gene status -->
-    <field name="imits_phenotype_started" type="string" indexed="true" multiValued="true"/>
-    <field name="imits_phenotype_complete" type="string" indexed="true" multiValued="true"/>
-    <field name="imits_phenotype_status" type="string" indexed="true" multiValued="true"/>
+    <field name="sex" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="zygosity" type="string" indexed="true" stored="true" required="false" multiValued="false" />
 
-    <field name="text" type="text_general" indexed="true" stored="false" multiValued="true"/>
-    <field name="auto_suggest" type="text_ngram" indexed="true" stored="false" multiValued="true"/>
+    <field name="pipeline_name" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="pipeline_stable_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="pipeline_stable_key" type="string" indexed="true" stored="true" required="false" multiValued="false" />
 
+    <field name="procedure_name" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="procedure_stable_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="procedure_stable_key" type="string" indexed="true" stored="true" required="false" multiValued="false" />
 
+    <field name="parameter_name" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="parameter_stable_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="parameter_stable_key" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+
+    <field name="statistical_method" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="percentage_change" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+
+    <field name="p_value" type="pdouble" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="effect_size" type="pdouble" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="external_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="life_stage_acc" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="life_stage_name" type="string" indexed="true" stored="true" required="false" multiValued="false" />
 
     <dynamicField name="*_txt_en_split_tight" type="text_en_splitting_tight" indexed="true" stored="true"/>
     <dynamicField name="*_descendent_path" type="descendent_path" indexed="true" stored="true"/>
@@ -650,18 +609,9 @@
 
     <dynamicField name="*_c" type="currency" indexed="true" stored="true"/>
 
-    <copyField source="*" dest="text"/>
-    <copyField source="parameter_stable_id"  dest="auto_suggest" />
-    <copyField source="parameter_name"  dest="auto_suggest" />
-    <copyField source="procedure_stable_id" dest="auto_suggest" />
-    <copyField source="procedure_name"  dest="auto_suggest" />
-    <copyField source="pipeline_stable_id" dest="auto_suggest" />
-    <copyField source="pipeline_name"  dest="auto_suggest" />
-
-    <!-- field for the QueryParser to use when an explicit fieldname is absent -->
-    <df>text</df>
 
     <!-- The defaultOperator parameter in the schema is no longer supported. Use the q.op parameter instead -->
     <solrQueryParser q.op="OR"/>
+
 
 </schema>

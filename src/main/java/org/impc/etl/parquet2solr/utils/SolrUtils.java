@@ -42,12 +42,8 @@ public class SolrUtils {
         confPath.toFile().mkdir();
         File solrConfigFile = Paths.get(confPath.toString() + "/solrconfig.xml").toFile();
         File solrSchemaFile = Paths.get(confPath.toString() + "/schema.xml").toFile();
-        try {
-            FileUtils.copyInputStreamToFile(SolrUtils.class.getResourceAsStream(format("/solr/%s/conf/solrconfig.xml", coreName)), solrConfigFile);
-            FileUtils.copyInputStreamToFile(SolrUtils.class.getResourceAsStream(format("/solr/%s/conf/schema.xml", coreName)), solrSchemaFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        copyInputStreamToFile(format("/solr/%s/conf/solrconfig.xml", coreName), solrConfigFile);
+        copyInputStreamToFile(format("/solr/%s/conf/schema.xml", coreName), solrSchemaFile);
         SolrResourceLoader loader = new SolrResourceLoader(targetPath);
 
         Map<String, String> props = new HashMap<>();

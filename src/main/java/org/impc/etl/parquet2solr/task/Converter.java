@@ -48,7 +48,7 @@ public class Converter implements Serializable {
     public void convert(String sparkAppName, String impcParquetPath, String coreName, String outputPath, int limit, boolean inferSchema, boolean local) {
         // Initialize Spark session
         SparkSession sparkSession = null;
-        if(local) {
+        if (local) {
             sparkSession = SparkSession
                     .builder()
                     .master("local[*]")
@@ -101,7 +101,7 @@ public class Converter implements Serializable {
                                 String solrType = indexSchema.getField(fieldName).getType().getClassArg();
                                 if (!"array".equals(fieldType)) {
                                     Object value = row.get(index);
-                                    if (NUMERIC_SOLR_TYPES.contains(solrType)) {
+                                    if (NUMERIC_SOLR_TYPES.contains(solrType) && !(value instanceof Long) && !(value instanceof Integer) && !(value instanceof Double) && !(value instanceof Float)) {
                                         try {
                                             Double.parseDouble((String) value);
                                         } catch (Exception e) {
@@ -114,7 +114,9 @@ public class Converter implements Serializable {
                                         List<Object> valueItems = row.getList(index);
                                         if (valueItems != null) {
                                             for (Object valueItem : valueItems) {
-                                                if (NUMERIC_SOLR_TYPES.contains(solrType)) {
+                                                if(valueItem == null)
+                                                    continue;
+                                                if (NUMERIC_SOLR_TYPES.contains(solrType) && !(valueItem instanceof Long) && !(valueItem instanceof Integer) && !(valueItem instanceof Double) && !(valueItem instanceof Float)) {
                                                     try {
                                                         Double.parseDouble((String) valueItem);
                                                     } catch (Exception e) {
