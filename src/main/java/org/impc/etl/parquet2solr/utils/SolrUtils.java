@@ -62,6 +62,8 @@ public class SolrUtils {
     }
 
     public static EmbeddedSolrServer createSolrClientInferSchema(Path targetPath, String coreName, StructType sparkSchema) {
+        // Convert possibly relative path to absolute path.
+        targetPath = targetPath.toAbsolutePath();
         if(targetPath.toFile().exists()) {
             forceDeleteDirectory(targetPath);
             targetPath.toFile().mkdir();
