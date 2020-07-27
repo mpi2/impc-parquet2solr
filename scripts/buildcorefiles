@@ -1,0 +1,41 @@
+#!/bin/bash
+
+export YARN_CONF_DIR=~/spark-2.4.5-bin-hadoop2.7/yarn-conf-hh/
+
+# Typical usage:
+#   buildcorefiles batchdata essentialgenes
+#   buildcorefiles batchdata orthology_mapping
+
+if [[ $# -lt 2 ]]; then
+  echo "Usage: $0 spark_app_name core_name"
+  exit 1
+fi
+
+# These are the args to parquet2solr-0.0.1-SNAPSHOT.jar. 'limit' is not required.
+# args[0] - Spark application name
+# args[1] - Path to parquet directory
+# args[2] - core name
+# args[3] - inferSchema (true or false) set to true to infer the schema; false to use the provided schema.xml
+# args[4] - local (true or false) - set to true if running local; false if running on the cluster
+# args[5] - Path to output directory
+# args[6] - limit
+
+OUTPUT_DIR=coalesce/$2
+ echo "~/jars/parquet2solr-0.0.1-SNAPSHOT.jar $1 parquets/$2 $2 true false $OUTPUT_DIR"
+
+~/spark-2.4.5-bin-hadoop2.7/bin/spark-submit \
+ --driver-memory=32g \
+ --master=yarn \
+ --conf=spark.yarn.maxAppAttempts=2 \
+ --conf=spark.executor.memoryOverhead=5 \
+ --conf=spark.yarn.exclude.nodes=hh-hdp-007.ebi.ac.uk:8041 \
+ --conf=spark.blacklist.enabled=true \
+ --conf=spark.executorEnv.PYSPARK_PYTHON=python36 \
+ --conf=spark.yarn.appMasterEnv.PYSPARK_PYTHON=python36 \
+ --conf=spark.yarn.appMasterEnv.PYSPARK_DRIVER_PYTHON=python36 \
+ --conf=spark.sql.session.timeZone=UTC \
+ --deploy-mode=cluster \
+ --executor-memory=32G \
+ --num-executors=17 \
+ --executor-cores=5 \
+ ~/jars/parquet2solr-0.0.1-SNAPSHOT.jar $1 parquets/$2 $2 true false $OUTPUT_DIR
