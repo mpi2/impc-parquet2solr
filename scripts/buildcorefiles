@@ -20,7 +20,7 @@ fi
 # args[5] - Path to output directory
 # args[6] - limit
 
-OUTPUT_DIR=coalesce/$2
+OUTPUT_DIR=unmerged/$2
  echo "~/jars/parquet2solr-0.0.1-SNAPSHOT.jar $1 parquets/$2 $2 true false $OUTPUT_DIR"
 
 ~/spark-2.4.5-bin-hadoop2.7/bin/spark-submit \
