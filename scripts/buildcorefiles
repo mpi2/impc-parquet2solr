@@ -4,7 +4,7 @@ export YARN_CONF_DIR=~/spark-2.4.5-bin-hadoop2.7/yarn-conf-hh/
 
 # Typical usage:
 #   buildcorefiles batchdata essentialgenes
-#   buildcorefiles batchdata orthology_mapping
+#   buildcorefiles batchdata ortholog_mapping
 
 if [[ $# -lt 2 ]]; then
   echo "Usage: $0 spark_app_name core_name"
