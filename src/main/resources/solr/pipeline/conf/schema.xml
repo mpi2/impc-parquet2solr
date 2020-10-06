@@ -573,6 +573,18 @@
     <field name="anatomy_term" type="string" indexed="true" stored="true" required="false" multiValued="false" />
     <field name="anatomy_term_synonym" type="string" indexed="true" stored="true" required="false" multiValued="true" />
 
+    <field name="embryo_anatomy_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="embryo_anatomy_term" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="top_level_embryo_anatomy_id" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+    <field name="top_level_embryo_anatomy_term" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+
+    <field name="mouse_anatomy_id" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="mouse_anatomy_term" type="string" indexed="true" stored="true" required="false" multiValued="false" />
+    <field name="top_level_mouse_anatomy_id" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+    <field name="top_level_mouse_anatomy_term" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+
+
+
     <!-- Gene status -->
     <field name="imits_phenotype_started" type="string" indexed="true" multiValued="true"/>
     <field name="imits_phenotype_complete" type="string" indexed="true" multiValued="true"/>

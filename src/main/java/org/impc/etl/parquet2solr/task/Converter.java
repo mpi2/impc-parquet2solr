@@ -79,11 +79,12 @@ public class Converter implements Serializable {
          * so locally could look like you can access variables outside of this block but that's not the case in the cluster
          * That's why I had to do this Broadcast wrapping before, the same could apply for methods
          * */
-        impcDataSet.foreachPartition((ForeachPartitionFunction<Row>) t -> {
+        impcDataSet.repartition(50).foreachPartition((ForeachPartitionFunction<Row>) t -> {
             Boolean inferSchemaValue = broadcastInferSchema.getValue();
             String instancePathStr = format("%s/%s_%d", broadcastOutputPath.getValue(), coreName, TaskContext.getPartitionId());
             Path instancePath = Paths.get(instancePathStr);
             log.info(format("Created core directory at %s", instancePathStr));
+            System.out.println(format("Created core directory at %s", instancePathStr));
             EmbeddedSolrServer solrClient = null;
             StructType schema = broadcastSchema.getValue();
             if (!inferSchemaValue) {
@@ -138,6 +139,7 @@ public class Converter implements Serializable {
                     } catch (Exception e) {
                         e.printStackTrace();
                         log.error("FAILED to index: " + row.mkString(" | "));
+                        System.out.println("FAILED to index: " + row.mkString(" | "));
                     }
                 }
             } else {
@@ -163,6 +165,7 @@ public class Converter implements Serializable {
                         new org.apache.hadoop.fs.Path(instancePathStr));
             } else {
                 log.info(format("Path exists: %s, %s", instancePathStr, fs.getUri()));
+                System.out.println(format("Path exists: %s, %s", instancePathStr, fs.getUri()));
             }
         });
     }
