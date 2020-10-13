@@ -134,7 +134,7 @@ public class SolrUtils {
             try {
                 targetFields.add(new SchemaField(sourceField.name(), fieldType));
             } catch (Exception e) {
-                System.out.println("hello");
+                logger.error("Failed to add field {}, type {}", sourceField.name(), fieldType.getTypeName());
             }
         }
 
