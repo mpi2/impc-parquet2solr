@@ -155,7 +155,7 @@ public class Converter implements Serializable {
                         Object value     = row.get(index);
                         String fieldName = field.name();
                         String fieldType = field.dataType().typeName();
-                        if ("strings".equals(fieldType)) {
+                        if ("array".equals(fieldType)) {
                             List<Object> valueItems = row.getList(index);
                             if (valueItems != null) {
                                 for (Object valueItem : valueItems) {
