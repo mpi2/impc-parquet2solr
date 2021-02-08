@@ -2,9 +2,11 @@
 
 export YARN_CONF_DIR=~/spark-2.4.5-bin-hadoop2.7/yarn-conf-hh/
 
+# This script buids the unmerged index files from the parquet files on the hadoop cluster.
+
 # Typical usage:
-#   buildcorefiles batchdata essentialgenes
-#   buildcorefiles batchdata ortholog_mapping
+#   buildEgCoreFiles batchdata essentialgenes
+#   buildEgCoreFiles batchdata ortholog_mapping
 
 if [[ $# -lt 2 ]]; then
   echo "Usage: $0 spark_app_name core_name"
@@ -20,7 +22,7 @@ fi
 # args[5] - Path to output directory
 # args[6] - limit
 
-OUTPUT_DIR=unmerged/$2
+OUTPUT_DIR=eg/unmerged/$2
  echo "~/jars/parquet2solr-0.0.1-SNAPSHOT.jar $1 parquets/$2 $2 true false $OUTPUT_DIR"
 
 ~/spark-2.4.5-bin-hadoop2.7/bin/spark-submit \
@@ -38,4 +40,4 @@ OUTPUT_DIR=unmerged/$2
  --executor-memory=32G \
  --num-executors=17 \
  --executor-cores=5 \
- ~/jars/parquet2solr-0.0.1-SNAPSHOT.jar $1 parquets/$2 $2 true false $OUTPUT_DIR
+ ~/jars/parquet2solr-0.0.1-SNAPSHOT.jar $1 eg/parquets/$2 $2 true false $OUTPUT_DIR
