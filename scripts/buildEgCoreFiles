@@ -23,7 +23,7 @@ fi
 # args[6] - limit
 
 OUTPUT_DIR=eg/unmerged/$2
- echo "~/jars/parquet2solr-0.0.1-SNAPSHOT.jar $1 parquets/$2 $2 true false $OUTPUT_DIR"
+ echo "~/jars/parquet2solr-0.0.1-SNAPSHOT.jar $1 eg/parquets/$2 $2 true false $OUTPUT_DIR"
 
 ~/spark-2.4.5-bin-hadoop2.7/bin/spark-submit \
  --driver-memory=32g \
