@@ -569,6 +569,7 @@
     <field name="age_in_weeks" type="pint" indexed="true" stored="true" multiValued="false"/>
     <field name="download_url" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="jpeg_url" type="string" indexed="true" stored="true" multiValued="false"/>
+    <field name="image_link" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="thumbnail_url" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="omero_id" type="string" indexed="true" stored="true" multiValued="false"/>
 
