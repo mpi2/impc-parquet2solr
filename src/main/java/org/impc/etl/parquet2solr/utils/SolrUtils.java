@@ -109,6 +109,7 @@ public class SolrUtils {
         sparkToSolrTypes.put("long",      "plong");
         sparkToSolrTypes.put("string",    "string");
         sparkToSolrTypes.put("timestamp", "pdate");
+        sparkToSolrTypes.put("array",     "strings");
 
         File solrManagedSchemaFile = Paths.get(targetConfPath.toString() + "/managed-schema").toFile();
         copyInputStreamToFile("/solr/schemaless-default/conf/managed-schema", solrManagedSchemaFile);
@@ -130,7 +131,11 @@ public class SolrUtils {
             String fieldTypeName = sparkToSolrTypes.get(sourceField.dataType().typeName());
             fieldTypeName = (fieldTypeName == null ? "string" : fieldTypeName);
             FieldType fieldType = emptyIndexSchema.getFieldTypeByName(fieldTypeName);
-            targetFields.add(new SchemaField(sourceField.name(), fieldType));
+            try {
+                targetFields.add(new SchemaField(sourceField.name(), fieldType));
+            } catch (Exception e) {
+                logger.error("Failed to add field {}, type {}", sourceField.name(), fieldType.getTypeName());
+            }
         }
 
         emptyIndexSchema.addFields(targetFields);

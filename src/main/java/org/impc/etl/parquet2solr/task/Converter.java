@@ -147,9 +147,24 @@ public class Converter implements Serializable {
                     SolrInputDocument document = new SolrInputDocument();
                     for (StructField field : schema.fields()) {
                         int index = schema.fieldIndex(field.name());
+                        if (row.isNullAt(index)) {
+                            continue;
+                        }
+                        Object value     = row.get(index);
                         String fieldName = field.name();
-                        Object value = row.get(index);
-                        document.addField(fieldName, value);
+                        String fieldType = field.dataType().typeName();
+                        if ("array".equals(fieldType)) {
+                            List<Object> valueItems = row.getList(index);
+                            if (valueItems != null) {
+                                for (Object valueItem : valueItems) {
+                                    if (valueItem != null) {
+                                        document.addField(fieldName, valueItem);
+                                    }
+                                }
+                            }
+                        } else {
+                            document.addField(fieldName, value);
+                        }
                     }
                     solrClient.add(document);
                 }

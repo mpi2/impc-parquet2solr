@@ -169,6 +169,10 @@
           <groupId>com.jayway.jsonpath</groupId>
         </exclusion>
         <exclusion>
+          <artifactId>jakarta.xml.bind-api</artifactId>
+          <groupId>jakarta.xml.bind</groupId>
+        </exclusion>
+        <exclusion>
           <artifactId>assertj-core</artifactId>
           <groupId>org.assertj</groupId>
         </exclusion>
