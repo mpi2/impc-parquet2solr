@@ -2,12 +2,9 @@ package org.impc.etl.parquet2solr.task;
 
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
-import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.core.CoreContainer;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.spark.TaskContext;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
@@ -21,7 +18,7 @@ import org.impc.etl.parquet2solr.utils.SerializableHadoopConfiguration;
 import org.impc.etl.parquet2solr.utils.SolrUtils;
 import scala.reflect.ClassTag;
 
-import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -79,9 +76,9 @@ public class Converter implements Serializable {
          * so locally could look like you can access variables outside of this block but that's not the case in the cluster
          * That's why I had to do this Broadcast wrapping before, the same could apply for methods
          * */
-        impcDataSet.repartition(50).foreachPartition((ForeachPartitionFunction<Row>) t -> {
+        impcDataSet.repartition(100).foreachPartition((ForeachPartitionFunction<Row>) t -> {
             Boolean inferSchemaValue = broadcastInferSchema.getValue();
-            String instancePathStr = format("%s/%s_%d", broadcastOutputPath.getValue(), coreName, TaskContext.getPartitionId());
+            String instancePathStr = format("%s/%s_%d_%d", broadcastOutputPath.getValue(), coreName, TaskContext.getPartitionId(), TaskContext.get().attemptNumber());
             Path instancePath = Paths.get(instancePathStr);
             log.info(format("Created core directory at %s", instancePathStr));
             System.out.println(format("Created core directory at %s", instancePathStr));
@@ -140,6 +137,7 @@ public class Converter implements Serializable {
                         e.printStackTrace();
                         log.error("FAILED to index: " + row.mkString(" | "));
                         System.out.println("FAILED to index: " + row.mkString(" | "));
+                        throw new Exception("FAILED to index: " + row.mkString(" | "));
                     }
                 }
             } else {
@@ -174,14 +172,23 @@ public class Converter implements Serializable {
             solrClient.commit();
             solrClient.optimize();
             solrClient.close();
-            FileSystem fs = FileSystem.get(broadcastConf.getValue().get());
-            if (!fs.exists(new org.apache.hadoop.fs.Path(instancePathStr))) {
-                fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(instancePathStr),
-                        new org.apache.hadoop.fs.Path(instancePathStr));
-            } else {
-                log.info(format("Path exists: %s, %s", instancePathStr, fs.getUri()));
-                System.out.println(format("Path exists: %s, %s", instancePathStr, fs.getUri()));
-            }
+            TaskContext.get().addTaskCompletionListener(taskContext -> {
+                FileSystem fs = null;
+                try {
+                    fs = FileSystem.get(broadcastConf.getValue().get());
+                    if (!fs.exists(new org.apache.hadoop.fs.Path(instancePathStr)) && !taskContext.isInterrupted()) {
+                        fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(instancePathStr),
+                                new org.apache.hadoop.fs.Path(instancePathStr));
+                    } else {
+                        log.info(format("Path exists: %s, %s", instancePathStr, fs.getUri()));
+                        System.out.println(format("Path exists: %s, %s", instancePathStr, fs.getUri()));
+                        throw new IOException(format("Path exists: %s, %s", instancePathStr, fs.getUri()));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            });
         });
     }
 

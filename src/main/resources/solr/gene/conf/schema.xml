@@ -543,7 +543,18 @@
     <field name="ncbi_id" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="ccds_id" type="string" indexed="true" stored="true" multiValued="true" />
 
-    <field name="imits_phenotype_started" type="string" indexed="true" stored="true" multiValued="false"/>
+    <!-- gene productions status -->
+    <field name="assignment_status" type="string" indexed="true" stored="true" multiValued="false" />
+    <field name="conditional_allele_production_status" type="string" indexed="true" stored="true" multiValued="false" />
+    <field name="crispr_allele_production_status" type="string" indexed="true" stored="true" multiValued="false" />
+    <field name="mouse_production_status" type="string" indexed="true" stored="true" multiValued="false" />
+    <field name="null_allele_production_status" type="string" indexed="true" stored="true" multiValued="false" />
+    <field name="es_cell_production_status" type="string" indexed="true" stored="true" multiValued="false" />
+    <field name="phenotyping_data_available" type="boolean" indexed="true" stored="true" multiValued="false" />
+
+
+
+    <!-- <field name="imits_phenotype_started" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="imits_phenotype_complete" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="imits_phenotype_status" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="status" type="string" indexed="true" stored="true" multiValued="false"/>
@@ -553,7 +564,7 @@
     <field name="latest_phenotype_status" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="latest_project_status" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="latest_production_centre" type="string" indexed="true" stored="true" multiValued="true"/>
-    <field name="latest_phenotyping_centre" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="latest_phenotyping_centre" type="string" indexed="true" stored="true" multiValued="true"/> -->
 
     <!--  gene has QC: ie, a record in experiment core -->
     <field name="hasQc" type="pint" indexed="true" stored="true" multiValued="false"/>
@@ -561,11 +572,11 @@
     <!-- allele level fields of a gene -->
     <field name="allele_name" type="text" indexed="true" stored="true" multiValued="true"/>
     <field name="allele_accession_id" type="text" indexed="true" stored="true" multiValued="true"/>
-    <field name="imits_es_cell_status" type="string" indexed="true" stored="true" multiValued="false"/>
+    <!--<field name="imits_es_cell_status" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="es_cell_status" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="imits_mouse_status" type="string" indexed="true" stored="true" multiValued="false"/>
-    <field name="mouse_status" type="string" indexed="true" stored="true" multiValued="true"/>
-    <field name="phenotype_status" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="mouse_status" type="string" indexed="true" stored="true" multiValued="true"/> -->
+    <field name="phenotype_status" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="production_centre" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="phenotyping_centre" type="string" indexed="true" stored="true" multiValued="true"/>
 
@@ -809,8 +820,8 @@
     <copyField source="human_gene_symbol" dest="auto_suggest"/>
     <copyField source="human_symbol_synonym" dest="auto_suggest"/>
     <copyField source="ensembl_gene_id" dest="auto_suggest"/>
-    <copyField source="latest_production_centre" dest="auto_suggest"/>
-    <copyField source="latest_phenotyping_centre" dest="auto_suggest"/>
+    <!--<copyField source="latest_production_centre" dest="auto_suggest"/> -->
+    <!-- copyField source="latest_phenotyping_centre" dest="auto_suggest"/ -->
     <copyField source="allele_name" dest="auto_suggest"/>
     <copyField source="go_term_id" dest="auto_suggest"/>
     <copyField source="alt_mp_id" dest="auto_suggest" />
