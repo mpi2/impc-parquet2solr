@@ -3,13 +3,21 @@
 export YARN_CONF_DIR=~/spark-2.4.5-bin-hadoop2.7/yarn-conf-hh/
 
 # This script builds the solr [unmerged] index files from the parquet files on the hadoop cluster.
-
+# It is just a wrapper around the jar that does the work, encapsulating the many hadoop parameters
+# required to do the work.
+# Since eg schemas are always inferred, the 3rd jar parameter, 'inferSchema', is always true.
+# And since this script is customised for running on hadoop, the 4th jar parameter, 'local',
+#    is always false.
+#
 # Typical usage:
-#   buildEgCoreFiles spark_eg essentialgenes eg/parquet eg/solr
-#   buildEgCoreFiles spark_eg ortholog_mapping eg/parquet eg/solr
+#   buildEgCoreFiles
+#      spark_eg                      # Spark application name
+#      eg/parquet/essentialgenes     # Path to parquet directory
+#      essentialgenes                # core name
+#      eg/solr/essentialgenes_index  # Path to output directory
 
 if [[ $# -lt 4 ]]; then
-  echo "Usage: $0 spark_app_name core parquet_dir_head output_dir_head"
+  echo "Usage: $0 spark_app_name  parquet_dir  core_name  output_dir"
   exit 1
 fi
 
@@ -24,9 +32,9 @@ fi
 
 JAR=~/jars/parquet2solr-0.0.1-SNAPSHOT.jar
 SPARK_APP_NAME=$1
-CORE=$2
-PARQUET_DIR=$3/${CORE}
-OUTPUT_DIR=$4/${CORE}
+PARQUET_DIR=$2
+CORE=$3
+OUTPUT_DIR=$4
 COMMAND="$JAR $SPARK_APP_NAME $PARQUET_DIR $CORE true false $OUTPUT_DIR"
 echo "COMMAND=$COMMAND"
 
