@@ -524,6 +524,7 @@
     <field name="derived" type="boolean" indexed="true" stored="true" required="false" multiValued="false"/>
     <field name="media" type="boolean" indexed="true" stored="true" required="false" multiValued="false"/>
     <field name="annotate" type="boolean" indexed="true" stored="true" required="false" multiValued="false"/>
+    <field name="comparable_parameter_group" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
 
     <!-- Stage for procedure -->
     <field name="experiment_level" type="string" indexed="true" stored="true" required="false" multiValued="false" />

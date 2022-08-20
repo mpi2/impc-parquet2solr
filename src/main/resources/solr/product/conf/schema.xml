@@ -458,6 +458,7 @@
 
     <field name="allele_type" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="allele_name" type="string" indexed="true" stored="true" multiValued="false"/>
+    <field name="allele_description" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="allele_has_issues" type="boolean" indexed="true" stored="true" multiValued="false"/>
     <field name="allele_id" type="string" indexed="true" stored="true" multiValued="false"/>
 
@@ -488,6 +489,11 @@
     <field name="contact_names" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="contact_links" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="other_links" type="string" indexed="true" stored="true" multiValued="true"/>
+
+    <field name="tissue_enquiry_links" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="tissue_enquiry_types" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="tissue_distribution_centres" type="string" indexed="true" stored="true" multiValued="true"/>
+
 
     <field name="ikmc_project_id" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="design_id" type="string" indexed="true" stored="true" multiValued="false"/>
